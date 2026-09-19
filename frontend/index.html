@@ -1,0 +1,413 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LocalFarm AI</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f4f7f2;
+        color: #263326;
+    }
+
+    .header {
+        background: #2f6b3c;
+        color: white;
+        padding: 25px;
+        text-align: center;
+    }
+
+    .header h1 {
+        margin: 0;
+        font-size: 32px;
+    }
+
+    .header p {
+        margin: 8px 0 0;
+    }
+
+    .container {
+        max-width: 850px;
+        margin: 35px auto;
+        padding: 20px;
+    }
+
+    .card {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .status {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .badge {
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .local {
+        background: #d9f2df;
+        color: #216b32;
+    }
+
+    .cloud {
+        background: #fff0d6;
+        color: #9a5b00;
+    }
+
+    .moss {
+        background: #e5e8ff;
+        color: #3949ab;
+    }
+
+    input {
+        width: 100%;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        background: #2f6b3c;
+        color: white;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #24552f;
+    }
+
+    #loading {
+        display: none;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    #answer {
+        margin-top: 25px;
+    }
+
+    .ai-answer {
+        background: #eef8f0;
+        padding: 18px;
+        border-radius: 12px;
+        border-left: 5px solid #2f6b3c;
+        margin-bottom: 25px;
+    }
+
+    .ai-answer h3 {
+        margin-top: 0;
+    }
+
+    .result {
+        background: #f7faf6;
+        padding: 15px;
+        margin-top: 12px;
+        border-radius: 10px;
+        border-left: 4px solid #2f6b3c;
+    }
+
+    .score {
+        font-size: 13px;
+        color: #666;
+    }
+
+    .stats {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .stat {
+        flex: 1;
+        min-width: 180px;
+        background: #f7faf6;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .stat strong {
+        display: block;
+        font-size: 20px;
+        margin-bottom: 5px;
+    }
+
+    .footer {
+        text-align: center;
+        margin-top: 30px;
+        color: #777;
+        font-size: 14px;
+    }
+</style>
+
+</head><body><div class="header">
+    <h1>🌾 LocalFarm AI</h1>
+    <p>Local-first AI farming assistant</p>
+</div>
+
+<div class="container">
+
+    <div class="card">
+
+        <div class="status">
+
+            <span class="badge local" id="modeBadge">
+                🟢 LOCAL MODE
+            </span>
+
+            <span class="badge moss">
+                🔎 MOSS RETRIEVAL
+            </span>
+
+        </div>
+
+        <h2>Ask your farming question</h2>
+
+        <input
+            type="text"
+            id="question"
+            placeholder="Example: Why are rice leaves yellow?"
+        >
+
+        <button onclick="askQuestion()">
+            🌱 Ask LocalFarm AI
+        </button>
+
+        <div id="loading">
+            🔄 Processing your question...
+        </div>
+
+        <div id="answer"></div>
+
+    </div>
+
+    <div class="stats">
+
+        <div class="stat">
+            <strong id="source">--</strong>
+            Source
+        </div>
+
+        <div class="stat">
+            <strong id="retrieval">Moss</strong>
+            Retrieval
+        </div>
+
+        <div class="stat">
+            <strong id="latency">-- ms</strong>
+            Response Time
+        </div>
+
+    </div>
+
+    <div class="footer">
+        LocalFarm AI • Built for local-first agricultural assistance
+    </div>
+
+</div>
+
+
+<script>
+
+    async function askQuestion() {
+
+        const question =
+            document.getElementById("question").value.trim();
+
+        if (!question) {
+            alert("Please enter a farming question.");
+            return;
+        }
+
+        const loading =
+            document.getElementById("loading");
+
+        const modeBadge =
+            document.getElementById("modeBadge");
+
+        loading.style.display = "block";
+
+        loading.textContent =
+            "🔄 Checking local farming knowledge...";
+
+        document.getElementById("answer").innerHTML = "";
+
+        const startTime = performance.now();
+
+        try {
+
+            const response = await fetch(
+                "http://127.0.0.1:8000/ask",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        question: question
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "Server returned " + response.status
+                );
+            }
+
+            const data = await response.json();
+
+            const endTime = performance.now();
+
+            const latency =
+                Math.round(endTime - startTime);
+
+
+            /*
+             * Update source
+             */
+
+            document.getElementById("source").textContent =
+                data.source;
+
+            document.getElementById("retrieval").textContent =
+                data.retrieval;
+
+            document.getElementById("latency").textContent =
+                latency + " ms";
+
+
+            /*
+             * Update LOCAL / CLOUD badge
+             */
+
+            if (data.source === "LOCAL") {
+
+                modeBadge.textContent =
+                    "🟢 LOCAL MODE";
+
+                modeBadge.className =
+                    "badge local";
+
+            } else {
+
+                modeBadge.textContent =
+                    "☁️ CLOUD FALLBACK";
+
+                modeBadge.className =
+                    "badge cloud";
+
+            }
+
+
+            /*
+             * Display answer
+             */
+
+            let html = `
+                <div class="ai-answer">
+
+                    <h3>🤖 LocalFarm AI Answer</h3>
+
+                    <p>${data.answer}</p>
+
+                </div>
+
+                <h3>📚 Moss Retrieval Results</h3>
+            `;
+
+
+            /*
+             * Display Moss results
+             */
+
+            if (data.results && data.results.length > 0) {
+
+                data.results.forEach(function(item) {
+
+                    html += `
+                        <div class="result">
+
+                            <p>${item.text}</p>
+
+                            <div class="score">
+                                Moss relevance score:
+                                ${item.score.toFixed(3)}
+                            </div>
+
+                        </div>
+                    `;
+
+                });
+
+            } else {
+
+                html += `
+                    <div class="result">
+                        No local Moss results were found.
+                        Cloud AI was used for this question.
+                    </div>
+                `;
+
+            }
+
+
+            document.getElementById("answer").innerHTML =
+                html;
+
+        }
+
+        catch (error) {
+
+            document.getElementById("answer").innerHTML =
+                `
+                <div class="result">
+
+                    ❌ Unable to connect to LocalFarm AI.
+
+                    <br><br>
+
+                    Make sure the FastAPI server is running.
+
+                </div>
+                `;
+
+            console.error(error);
+
+        }
+
+        finally {
+
+            loading.style.display = "none";
+
+        }
+
+    }
+
+</script>
+
+</body></html>
